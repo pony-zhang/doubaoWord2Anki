@@ -48,3 +48,25 @@ from doubaoWord2Anki import HTTPClient, DataTransformer, AnkiExporter
 ## License
 
 MIT
+
+
+{
+    "code": 0,
+    "msg": "",
+    "data": {
+        "word_notes": [
+            {
+                "source_lang": "en",
+                "target_lang": "zh",
+                "word": "accurate",
+                "translate": "精确的"
+            },
+            {
+                "source_lang": "en",
+                "target_lang": "zh",
+                "word": "kinda",
+                "translate": "有点"
+            }
+        ]
+    }
+}

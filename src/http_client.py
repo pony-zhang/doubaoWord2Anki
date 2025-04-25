@@ -1,20 +1,13 @@
 import aiohttp
 import asyncio
-from typing import Dict, Any, Optional, Union
-from pydantic import BaseModel
+from typing import Dict, Any, Optional, List
 from loguru import logger
-from .config import settings
+from .config import settings, ApiResponse, WordNote, WordNotesResponse
 import backoff
 
 class RequestError(Exception):
     """Custom exception for request errors"""
     pass
-
-class ResponseModel(BaseModel):
-    """Response data model"""
-    code: int
-    msg: str
-    data: Optional[Dict[str, Any]]
 
 class HTTPClient:
     def __init__(
@@ -23,17 +16,15 @@ class HTTPClient:
         timeout: int = 30,
         max_retries: int = 3
     ):
-        """Initialize HTTP client with configuration
-
-        Args:
-            base_url: Base URL for API requests
-            timeout: Request timeout in seconds
-            max_retries: Maximum number of retry attempts
-        """
+        """Initialize HTTP client with configuration"""
         self.base_url = base_url or settings.api_endpoint
         self.timeout = timeout
         self.max_retries = max_retries
         self._session = None
+        
+        # Validate required settings
+        if not settings.doubao_cookie or settings.doubao_cookie == "your_cookie_here":
+            raise ValueError("DOUBAO_COOKIE not set in .env file")
 
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session"""
@@ -64,34 +55,22 @@ class HTTPClient:
         params: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
         **kwargs
-    ) -> Dict[str, Any]:
-        """Make HTTP request with automatic retries and error handling
-
-        Args:
-            method: HTTP method (GET, POST, etc.)
-            endpoint: API endpoint path
-            params: Query parameters
-            json: JSON body data
-            **kwargs: Additional arguments for request
-
-        Returns:
-            Response data as dictionary
-
-        Raises:
-            RequestError: If request fails after retries
-        """
+    ) -> List[WordNote]:
+        """Make HTTP request with automatic retries and error handling"""
         session = await self._get_session()
         url = f"{self.base_url}/{endpoint}".rstrip('/')
 
+        # Required parameters for the API
         default_params = {
             "language": settings.language,
             "source_lang": settings.source_lang,
             "target_lang": settings.target_lang
         }
 
-        # Merge default params with custom params
         if params:
             default_params.update(params)
+
+        logger.debug(f"Making request to {url} with params: {default_params}")
 
         try:
             async with session.request(
@@ -104,14 +83,28 @@ class HTTPClient:
             ) as response:
                 response.raise_for_status()
                 data = await response.json()
+                logger.debug(f"API Response: {data}")
                 
                 # Validate response structure
-                response_model = ResponseModel(**data)
-                if response_model.code != 0:  # Assuming 0 is success code
-                    raise RequestError(f"API Error: {response_model.msg}")
+                api_response = ApiResponse(**data)
                 
-                logger.debug(f"Request successful: {url}")
-                return response_model.data or {}
+                # Handle API errors
+                if api_response.code != 0:  # Non-zero code indicates error
+                    error_msg = f"API Error {api_response.code}: {api_response.msg}"
+                    logger.error(error_msg)
+                    raise RequestError(error_msg)
+                
+                # Validate the data contains word notes
+                if not api_response.data:
+                    logger.warning("No data in API response")
+                    return []
+                
+                try:
+                    word_notes_response = WordNotesResponse(**api_response.data)
+                    return word_notes_response.word_notes
+                except Exception as e:
+                    logger.error(f"Failed to parse word notes: {e}")
+                    return []
 
         except aiohttp.ClientError as e:
             logger.error(f"Request failed: {e}")
@@ -123,20 +116,17 @@ class HTTPClient:
 
     async def get_data(
         self,
-        endpoint: str = "",
         params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        """Convenience method for GET requests"""
-        return await self.request("GET", endpoint, params=params)
-
-    async def post_data(
-        self,
-        endpoint: str = "",
-        data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        """Convenience method for POST requests"""
-        return await self.request("POST", endpoint, json=data, params=params)
+    ) -> List[WordNote]:
+        """Get word notes from API
+        
+        Args:
+            params: Additional parameters to pass to the API
+        
+        Returns:
+            List of word notes
+        """
+        return await self.request("GET", params=params)
 
     async def close(self):
         """Close the client session"""
