@@ -1,0 +1,45 @@
+# API Configuration
+api:
+  doubao:
+    endpoint: https://www.doubao.com/samantha/word_notes/get
+    cookie: "sessionid=9cb5cb973167b7ca52f64442406fc287"
+  
+  dictionaries:
+    youdao:
+      endpoint: http://www.youdao.com/w
+      user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+    collins:
+      endpoint: http://www.youdao.com/w
+      keyfrom: "dict2.top"
+    renren:
+      endpoint: http://www.91dict.com/words
+
+# Language Settings
+language:
+  default: zh
+  source: en
+  target: zh
+
+# HTTP Client Settings
+http:
+  timeout: 30
+  max_retries: 3
+  headers:
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+    accept: "application/json"
+    content_type: "application/json"
+
+# Anki Settings
+anki:
+  connect_url: http://localhost:8765
+  deck_name: "Doubao Vocabulary"
+  model_name: "Basic"
+  field_mappings:
+    Front: word
+    Back: translate
+
+# Cache Settings
+cache:
+  enabled: true
+  file: "word_cache.json"
+  directory: "~/.doubao"

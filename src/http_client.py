@@ -17,14 +17,14 @@ class HTTPClient:
         max_retries: int = 3
     ):
         """Initialize HTTP client with configuration"""
-        self.base_url = base_url or settings.api_endpoint
+        self.base_url = base_url or settings.api.doubao.endpoint
         self.timeout = timeout
         self.max_retries = max_retries
         self._session = None
         
         # Validate required settings
-        if not settings.doubao_cookie or settings.doubao_cookie == "your_cookie_here":
-            raise ValueError("DOUBAO_COOKIE not set in .env file")
+        if not settings.api.doubao.cookie:
+            raise ValueError("Cookie not set in config.yaml under api.doubao.cookie")
 
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session"""
@@ -37,8 +37,8 @@ class HTTPClient:
     def _get_headers(self) -> Dict[str, str]:
         """Get request headers with authentication"""
         return {
-            "Cookie": settings.doubao_cookie,
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            "Cookie": settings.api.doubao.cookie,
+            "User-Agent": settings.http.headers.user_agent,
             "Accept": "application/json",
             "Content-Type": "application/json"
         }
@@ -62,9 +62,9 @@ class HTTPClient:
 
         # Required parameters for the API
         default_params = {
-            "language": settings.language,
-            "source_lang": settings.source_lang,
-            "target_lang": settings.target_lang
+            "language": settings.language.default,
+            "source_lang": settings.language.source,
+            "target_lang": settings.language.target
         }
 
         if params:
