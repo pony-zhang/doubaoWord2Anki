@@ -18,8 +18,27 @@ dependencies = [
     "aiohttp>=3.8.0",
     "backoff>=2.2.0",
     "aiofiles>=23.1.0",
-    "pyyaml>=6.0.0"
+    "pyyaml>=6.0.0",
+    "pytest>=8.3.5",
+    "aioresponses>=0.7.8",
 ]
+
+[tool.setuptools]
+packages = ["src"]
+package-dir = {"src" = "src"}
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "aioresponses>=0.7.4",
+    "pytest-mock>=3.10.0"
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
 
 [project.scripts]
 anki-importer = "doubaoWord2Anki.cli:main"

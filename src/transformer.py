@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional
 from .config import settings, WordNote
-from loguru import logger
+import logging as logger
 from .services.dictionary_factory import DictionaryFactory
 import asyncio
 

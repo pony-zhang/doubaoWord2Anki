@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
@@ -39,7 +40,7 @@ class DictionariesConfig(BaseModel):
 class DouBaoConfig(BaseModel):
     """DouBao API configuration"""
     endpoint: str
-    cookie: str = ""
+    cookie: str
 
 class ApiConfig(BaseModel):
     """API configuration"""
@@ -91,7 +92,7 @@ def load_config() -> Config:
     
     with open(config_path, 'r', encoding='utf-8') as f:
         config_data = yaml.safe_load(f)
-    
+    config_data['api']['doubao']['cookie'] = os.getenv("COOKIE")
     return Config(**config_data)
 
 # Global configuration instance

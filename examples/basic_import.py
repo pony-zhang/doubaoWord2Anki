@@ -1,26 +1,59 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
 import asyncio
-from doubaoWord2Anki import HTTPClient, DataTransformer, AnkiExporter
+from src.fetchers.http import HTTPFetcher
+from src.middleware.pipeline import MiddlewarePipeline
+from src.middleware.dictionary_enhancement import DictionaryEnhancementMiddleware
+from src.middleware.field_mapping import FieldMappingMiddleware
+from src.exporters.anki_exporter import AnkiExporter
+
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 
 async def main():
+    """Example demonstrating the pipeline architecture"""
     # Initialize components
-    client = HTTPClient("http://api.example.com/words")
-    transformer = DataTransformer({
+    fetcher = HTTPFetcher()
+    
+    # Create pipeline
+    pipeline = MiddlewarePipeline()
+    
+    # Add middleware components
+    pipeline.add_middleware(DictionaryEnhancementMiddleware(
+        dictionary_service='youdao',
+        include_examples=True,
+        include_phonetic=True
+    ))
+    
+    pipeline.add_middleware(FieldMappingMiddleware({
         "Front": "word",
-        "Back": "definition"
-    })
+        "Back": "translate",
+        "Phonetic": "phonetic",
+        "Examples": "examples"
+    }))
+    
     exporter = AnkiExporter()
 
-    # Fetch sample data
-    data = await client.get_data()
+    # Fetch data
+    async with fetcher:
+        words = await fetcher.fetch_data()
     
-    # Transform data to Anki notes format
-    notes = transformer.transform_to_anki_notes(data)
+    # Process through pipeline
+    notes = await pipeline.process(words)
     
     # Export to Anki
-    success = await exporter.add_notes(
+    success = await exporter.export(
+        notes,
         deck_name="Vocabulary",
-        model_name="Basic",
-        notes=notes
+        model_name="Basic"
     )
     
     print("Import completed successfully" if success else "Import failed")

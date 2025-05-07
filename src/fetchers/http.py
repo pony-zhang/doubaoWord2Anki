@@ -1,28 +1,31 @@
 import aiohttp
 import asyncio
-from typing import Dict, Any, Optional, List
-from loguru import logger
-from .config import settings, ApiResponse, WordNote, WordNotesResponse
 import backoff
+from typing import Dict, Any, Optional, List
+import logging
+from src.core.interfaces import DataFetcher
+from ..core.models import WordNote, ApiResponse, WordNotesResponse
+from ..config import settings
+
+logger = logging.getLogger(__name__)
 
 class RequestError(Exception):
     """Custom exception for request errors"""
     pass
 
-class HTTPClient:
+class HTTPFetcher(DataFetcher):
     def __init__(
         self,
         base_url: Optional[str] = None,
         timeout: int = 30,
         max_retries: int = 3
     ):
-        """Initialize HTTP client with configuration"""
+        """Initialize HTTP fetcher with configuration"""
         self.base_url = base_url or settings.api.doubao.endpoint
         self.timeout = timeout
         self.max_retries = max_retries
         self._session = None
         
-        # Validate required settings
         if not settings.api.doubao.cookie:
             raise ValueError("Cookie not set in config.yaml under api.doubao.cookie")
 
@@ -48,7 +51,7 @@ class HTTPClient:
         (aiohttp.ClientError, asyncio.TimeoutError),
         max_tries=3
     )
-    async def request(
+    async def _request(
         self,
         method: str,
         endpoint: str = "",
@@ -60,7 +63,6 @@ class HTTPClient:
         session = await self._get_session()
         url = f"{self.base_url}/{endpoint}".rstrip('/')
 
-        # Required parameters for the API
         default_params = {
             "language": settings.language.default,
             "source_lang": settings.language.source,
@@ -83,18 +85,14 @@ class HTTPClient:
             ) as response:
                 response.raise_for_status()
                 data = await response.json()
-                logger.debug(f"API Response: {data}")
                 
-                # Validate response structure
                 api_response = ApiResponse(**data)
                 
-                # Handle API errors
-                if api_response.code != 0:  # Non-zero code indicates error
+                if api_response.code != 0:
                     error_msg = f"API Error {api_response.code}: {api_response.msg}"
                     logger.error(error_msg)
                     raise RequestError(error_msg)
                 
-                # Validate the data contains word notes
                 if not api_response.data:
                     logger.warning("No data in API response")
                     return []
@@ -106,27 +104,14 @@ class HTTPClient:
                     logger.error(f"Failed to parse word notes: {e}")
                     return []
 
-        except aiohttp.ClientError as e:
-            logger.error(f"Request failed: {e}")
-            raise RequestError(f"Request failed: {str(e)}")
-        
         except Exception as e:
-            logger.error(f"Unexpected error: {e}")
+            logger.error(f"Request failed: {e}")
             raise
 
-    async def get_data(
-        self,
-        params: Optional[Dict[str, Any]] = None
-    ) -> List[WordNote]:
-        """Get word notes from API
-        
-        Args:
-            params: Additional parameters to pass to the API
-        
-        Returns:
-            List of word notes
-        """
-        return await self.request("GET", params=params)
+    async def fetch_data(self, **kwargs) -> List[WordNote]:
+        """Fetch word notes from API"""
+        params = kwargs.get('params')
+        return await self._request("GET", params=params)
 
     async def close(self):
         """Close the client session"""
