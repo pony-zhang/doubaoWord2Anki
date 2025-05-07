@@ -1,7 +1,8 @@
 # API Configuration
 api:
   doubao:
-    endpoint: https://www.doubao.com/samantha/word_notes/get
+    jsonendpoint: https://www.doubao.com/samantha/word_notes/get
+    csvendpoint: https://www.doubao.com/samantha/word_notes/export?source_lang=en&target_lang=zh
   
   dictionaries:
     youdao:

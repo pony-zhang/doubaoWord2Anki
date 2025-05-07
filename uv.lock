@@ -1,6 +1,10 @@
 version = 1
 revision = 1
 requires-python = ">=3.9"
+resolution-markers = [
+    "python_full_version >= '3.10'",
+    "python_full_version < '3.10'",
+]
 
 [[package]]
 name = "aiofiles"
@@ -302,6 +306,8 @@ dependencies = [
     { name = "loguru" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "pyglossary", version = "4.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pyglossary", version = "5.0.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pytest" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
@@ -327,6 +333,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.6.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
+    { name = "pyglossary", specifier = ">=4.6.1" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
@@ -903,6 +910,30 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/67/1d/42628a2c33e93f8e9acbde0d5d735fa0850f3e6a2f8cb1eb6c40b9a732ac/pydantic_settings-2.9.1.tar.gz", hash = "sha256:c509bf79d27563add44e8446233359004ed85066cd096d8b510f715e6ef5d268", size = 163234 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b6/5f/d6d641b490fd3ec2c4c13b4244d68deea3a1b970a97be64f34fb5504ff72/pydantic_settings-2.9.1-py3-none-any.whl", hash = "sha256:59b4f431b1defb26fe620c71a7d3968a710d719f5f4cdbbdb7926edeb770f6ef", size = 44356 },
+]
+
+[[package]]
+name = "pyglossary"
+version = "4.6.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/24/be/c1652b5ed637d83b33955d73c5a311309ef5328c2e30b197c84a35d3403d/pyglossary-4.6.1.tar.gz", hash = "sha256:b7dbb4904dfbd1ba5af4b443b32d2c5cc45fd37256fa44a89185cce3d330d443", size = 354738 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/e2/c5ed2255a893aae807ae2a9859e912ccbbe7940aa0cc39d9d3e2e6b089dc/pyglossary-4.6.1-py3-none-any.whl", hash = "sha256:1d4a3a2ba43ead36afd1c3efe5dfc44f1a486312ebb422b0ba8e80d18e5c6895", size = 447777 },
+]
+
+[[package]]
+name = "pyglossary"
+version = "5.0.9"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/78/37/d3603b154b11c43fafc58091aa7a78c05406d42a4c91ebd73ffa08d177eb/pyglossary-5.0.9.tar.gz", hash = "sha256:3fdd7cbc8488a6a9c86372820479727a81c0ab4ea464f2a149d2691f459462ae", size = 480448 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/07/828e150fc47356882fac290b02637de189d4b945953fd222454aab6e78f9/pyglossary-5.0.9-py3-none-any.whl", hash = "sha256:b965479347eca7f363404e3ec70d87d4ff164d5a58417b3d01b806ddcdb07856", size = 635040 },
 ]
 
 [[package]]

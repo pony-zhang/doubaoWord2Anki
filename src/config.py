@@ -39,8 +39,9 @@ class DictionariesConfig(BaseModel):
 
 class DouBaoConfig(BaseModel):
     """DouBao API configuration"""
-    endpoint: str
     cookie: str
+    jsonendpoint: str
+    csvendpoint: str
 
 class ApiConfig(BaseModel):
     """API configuration"""

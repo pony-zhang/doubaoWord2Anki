@@ -2,11 +2,13 @@ from typing import Dict, Type
 from .dictionary_base import DictionaryService
 from .youdao_dictionary import YoudaoDictionary
 from .renren_dictionary import RenRenDictionary
+from .mdx_dictionary import MdxDictionaryService
 
 class DictionaryFactory:
     _services: Dict[str, Type[DictionaryService]] = {
         'youdao': YoudaoDictionary,
-        'renren': RenRenDictionary
+        'renren': RenRenDictionary,
+        'mdx': MdxDictionaryService
     }
 
     @classmethod
