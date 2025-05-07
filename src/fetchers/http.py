@@ -18,10 +18,18 @@ class HTTPFetcher(DataFetcher):
         self,
         base_url: Optional[str] = None,
         timeout: int = 30,
-        max_retries: int = 3
+        max_retries: int = 3,
+        format: str = 'json'
     ):
         """Initialize HTTP fetcher with configuration"""
-        self.base_url = base_url or settings.api.doubao.endpoint
+        self.format = format.lower()
+        # Use the appropriate endpoint based on format
+        if base_url:
+            self.base_url = base_url
+        else:
+            self.base_url = (settings.api.doubao.csvendpoint 
+                           if self.format == 'csv' 
+                           else settings.api.doubao.jsonendpoint)
         self.timeout = timeout
         self.max_retries = max_retries
         self._session = None
@@ -45,6 +53,31 @@ class HTTPFetcher(DataFetcher):
             "Accept": "application/json",
             "Content-Type": "application/json"
         }
+
+    async def _parse_csv_response(self, content: str) -> List[WordNote]:
+        """Parse CSV response into WordNote objects"""
+        import csv
+        from io import StringIO
+        
+        # logger.debug("Parsing CSV content",content)
+
+        word_notes = []
+        csv_file = StringIO(content.lstrip('\ufeff'))  # Remove BOM if present
+        reader = csv.DictReader(csv_file)
+        
+        for row in reader:
+            sentences = row.get('sentences', '').split('\n') if row.get('sentences') else []
+            word_note = WordNote(
+                source_lang=settings.language.source,
+                target_lang=settings.language.target,
+                word=row.get('word', ''),
+                translate=row.get('translation', ''),
+                phonetic=row.get('phonetic', ''),
+                sentences=sentences
+            )
+            word_notes.append(word_note)
+            
+        return word_notes
 
     @backoff.on_exception(
         backoff.expo,
@@ -84,8 +117,12 @@ class HTTPFetcher(DataFetcher):
                 **kwargs
             ) as response:
                 response.raise_for_status()
-                data = await response.json()
                 
+                if self.format == 'csv':
+                    content = await response.text()
+                    return await self._parse_csv_response(content)
+                
+                data = await response.json()
                 api_response = ApiResponse(**data)
                 
                 if api_response.code != 0:

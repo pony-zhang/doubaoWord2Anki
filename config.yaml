@@ -1,6 +1,7 @@
 # API Configuration
 api:
   doubao:
+    endpoint: "https://api.example.com/v1"
     jsonendpoint: https://www.doubao.com/samantha/word_notes/get
     csvendpoint: https://www.doubao.com/samantha/word_notes/export?source_lang=en&target_lang=zh
   
@@ -14,18 +15,22 @@ api:
     renren:
       endpoint: http://www.91dict.com/words
 
+  local:
+    host: "127.0.0.1"
+    port: 8000
+
 # Language Settings
 language:
-  default: zh
-  source: en
-  target: zh
+  default: "zh"
+  source: "en"
+  target: "zh"
 
 # HTTP Client Settings
 http:
   timeout: 30
   max_retries: 3
   headers:
-    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
     accept: "application/json"
     content_type: "application/json"
 

@@ -21,31 +21,45 @@ logger = logging.getLogger(__name__)
 async def main():
     """Example demonstrating the pipeline architecture"""
     # Initialize components
-    fetcher = HTTPFetcher()
+    fetcher = HTTPFetcher(format='csv')
     
     # Create pipeline
     pipeline = MiddlewarePipeline()
     
-    # Add middleware components
-    pipeline.add_middleware(DictionaryEnhancementMiddleware(
-        dictionary_service='youdao',
-        include_examples=True,
-        include_phonetic=True
-    ))
+    # # Add middleware components
+    # pipeline.add_middleware(DictionaryEnhancementMiddleware(
+    #     dictionary_service='youdao',
+    #     include_examples=True,
+    #     include_phonetic=True
+    # ))
     
-    pipeline.add_middleware(FieldMappingMiddleware({
-        "Front": "word",
-        "Back": "translate",
-        "Phonetic": "phonetic",
-        "Examples": "examples"
-    }))
+    # pipeline.add_middleware(FieldMappingMiddleware({
+    #     "Front": "word",
+    #     "Back": "translation",  # Changed from 'translate' to match CSV format
+    #     "Phonetic": "phonetic",
+    #     "Examples": "sentences"  # Changed from 'examples' to match CSV format
+    # }))
     
     exporter = AnkiExporter()
 
     # Fetch data
     async with fetcher:
         words = await fetcher.fetch_data()
-    
+        logger.info(f"Fetched {len(words)} words from the source.")
+        for word in words:
+            info = (
+                f"Word: {word.word}, "
+                f"Translation: {word.translate}, "
+                f"Source: {word.source_lang}→{word.target_lang}, "
+                f"Phonetic: {word.phonetic or 'N/A'}, "
+            )
+            if word.examples:
+                info += f", Examples: {' | '.join(word.examples)}"
+            if word.sentences:
+                info += f", Sentences: {' | '.join(word.sentences)}"
+            if word.collins or word.additional_info:
+                info += f", Extra: {word.collins or word.additional_info}"
+            logger.debug(info)
     # Process through pipeline
     notes = await pipeline.process(words)
     
